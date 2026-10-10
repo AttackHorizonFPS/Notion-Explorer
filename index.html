@@ -9,30 +9,33 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181f;--fg:#e6e9ee;--mut:#9aa4b2;--line:#2c3440;--acc:#6aa3ff;--ok:#4cc77f;--bad:#ff8a80;--card:#1c222c;color-scheme:dark}}
 :root[data-theme="dark"]{--bg:#14181f;--fg:#e6e9ee;--mut:#9aa4b2;--line:#2c3440;--acc:#6aa3ff;--ok:#4cc77f;--bad:#ff8a80;--card:#1c222c;color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0 auto;background:var(--bg);color:var(--fg);padding:16px;max-width:760px;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
-h1{font-size:20px;margin:0 0 12px}
-h2{font-size:16px;margin:0 0 8px;text-wrap:balance}
-.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--fg);padding:6px 12px;border-radius:6px;cursor:pointer}
+body{margin:0 auto;background:var(--bg);color:var(--fg);padding:8px;max-width:760px;font:14px/1.35 system-ui,-apple-system,"Segoe UI",sans-serif}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+h2{font-size:15px;margin:0 0 4px;text-wrap:balance}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--fg);padding:4px 10px;border-radius:6px;cursor:pointer}
 button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 button[aria-selected=true]{background:var(--acc);color:var(--bg);border-color:var(--acc)}
-.panel{display:none;border:1px solid var(--line);border-radius:8px;padding:14px;background:var(--card)}
+.panel{display:none;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--card)}
 .panel.on{display:block}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
 input[type=range]{flex:1;min-width:140px;accent-color:var(--acc)}
-.big{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
-.ok{color:var(--ok)}.bad{color:var(--bad)}.mut{color:var(--mut);font-size:13px}
-.bar{position:relative;height:14px;margin:4px 0 10px;background:var(--line);border-radius:3px}
-.bar i{position:absolute;top:0;height:100%;border-radius:3px;background:var(--acc)}
-.lbl{display:flex;justify-content:space-between;font-size:14px;font-variant-numeric:tabular-nums}
-details{margin:3px 0 3px 14px;border-left:2px solid var(--line);padding-left:10px}
+.big{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.mut{color:var(--mut);font-size:12px}
+.trow{display:grid;grid-template-columns:84px 1fr 78px;gap:8px;align-items:center;margin:3px 0;font-variant-numeric:tabular-nums}
+.trow span:last-child{text-align:right}
+.bar{position:relative;height:10px;background:var(--line);border-radius:3px}
+.bar i{position:absolute;top:0;left:0;height:100%;border-radius:3px;background:var(--acc)}
+details{margin:2px 0 2px 10px;border-left:2px solid var(--line);padding-left:8px;break-inside:avoid}
 summary{cursor:pointer;font-weight:600}
-input[type=text]{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit}
+#tree{columns:2 260px;column-gap:16px}
+.leaf{margin:1px 0 1px 20px;font-size:13px}
+input[type=text]{width:100%;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit}
 .hid{display:none}
 </style>
 </head>
 <body>
-<h1>Attack Horizon Bible Explorer</h1>
+<h1 class="sr">Attack Horizon Bible Explorer</h1>
 
 <div class="tabs" role="tablist">
 <button role="tab" aria-selected="true" data-p="t">Timeline</button>
@@ -63,7 +66,7 @@ const lab=m=>{const t=9+m;return MN[((t%12)+12)%12]+" "+(2026+Math.floor(t/12))}
 let rng="mid";
 function tl(){const s=+slip.value;slipv.textContent=s;const W=32;let h="";
 V.forEach(([n,c,r])=>{const v=rng=="mid"?c:rng=="lo"?r[0]:r[1];const m=v+s;const left=Math.max(0,m)/W*100;
-h+=`<div class="lbl"><span>${n}</span><span>${lab(m)}</span></div><div class="bar"><i style="left:0;width:${left}%"></i></div>`});
+h+=`<div class="trow"><span>${n}</span><div class="bar"><i style="width:${left}%"></i></div><span>${lab(m)}</span></div>`});
 document.getElementById("tl").innerHTML=h}
 slip.oninput=tl;document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{rng=b.dataset.r;document.querySelectorAll('[data-r]').forEach(x=>x.setAttribute('aria-selected',x===b));tl()});tl();
 // lane
@@ -81,7 +84,7 @@ const T=[
 const KEY="ah-tree-v1";let S={};try{S=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 function build(items,host,path){items.forEach(it=>{
- if(typeof it==="string"){const d=document.createElement("div");d.className="leaf";d.style.margin="2px 0 2px 24px";d.textContent=it;host.appendChild(d);return}
+ if(typeof it==="string"){const d=document.createElement("div");d.className="leaf";d.textContent=it;host.appendChild(d);return}
  const [name,kids]=it;const id=path+"/"+name;const dt=document.createElement("details");dt.dataset.id=id;if(S[id])dt.open=true;
  const sm=document.createElement("summary");sm.textContent=name;dt.appendChild(sm);dt.addEventListener("toggle",()=>{S[id]=dt.open;save()});build(kids,dt,id);host.appendChild(dt)})}
 build(T,document.getElementById("tree"),"");
