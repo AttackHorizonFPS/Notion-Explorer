@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Attack Horizon Bible Explorer</title>
+<style>
+:root{--bg:#f6f7f9;--fg:#1b2430;--mut:#5d6877;--line:#d9dee6;--acc:#1f5fd1;--ok:#13703a;--bad:#b3261e;--card:#ffffff;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181f;--fg:#e6e9ee;--mut:#9aa4b2;--line:#2c3440;--acc:#6aa3ff;--ok:#4cc77f;--bad:#ff8a80;--card:#1c222c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14181f;--fg:#e6e9ee;--mut:#9aa4b2;--line:#2c3440;--acc:#6aa3ff;--ok:#4cc77f;--bad:#ff8a80;--card:#1c222c;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0 auto;background:var(--bg);color:var(--fg);padding:16px;max-width:760px;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+h1{font-size:20px;margin:0 0 12px}
+h2{font-size:16px;margin:0 0 8px;text-wrap:balance}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--fg);padding:6px 12px;border-radius:6px;cursor:pointer}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button[aria-selected=true]{background:var(--acc);color:var(--bg);border-color:var(--acc)}
+.panel{display:none;border:1px solid var(--line);border-radius:8px;padding:14px;background:var(--card)}
+.panel.on{display:block}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
+input[type=range]{flex:1;min-width:140px;accent-color:var(--acc)}
+.big{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.mut{color:var(--mut);font-size:13px}
+.bar{position:relative;height:14px;margin:4px 0 10px;background:var(--line);border-radius:3px}
+.bar i{position:absolute;top:0;height:100%;border-radius:3px;background:var(--acc)}
+.lbl{display:flex;justify-content:space-between;font-size:14px;font-variant-numeric:tabular-nums}
+details{margin:3px 0 3px 14px;border-left:2px solid var(--line);padding-left:10px}
+summary{cursor:pointer;font-weight:600}
+input[type=text]{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit}
+.hid{display:none}
+</style>
+</head>
+<body>
+<h1>Attack Horizon Bible Explorer</h1>
+
+<div class="tabs" role="tablist">
+<button role="tab" aria-selected="true" data-p="t">Timeline</button>
+<button role="tab" aria-selected="false" data-p="l">IFV lane</button>
+<button role="tab" aria-selected="false" data-p="m">Page map</button></div>
+
+<section class="panel on" id="t"><h2>Version timeline (estimate)</h2>
+<div class="row"><label for="slip">Shift every date by <b id="slipv">0</b> months</label><input id="slip" type="range" min="-8" max="12" step="1" value="0"></div>
+<div class="row"><span>Show:</span><button data-r="mid" aria-selected="true">Central</button><button data-r="lo" aria-selected="false">Earliest</button><button data-r="hi" aria-selected="false">Latest</button></div>
+<div id="tl"></div><div class="mut">Estimated dates only. Axis starts Oct 2026.</div></section>
+
+<section class="panel" id="l"><h2>IFV lane check</h2>
+<div class="row"><label for="lw">Lane width: <b id="lwv">8.2</b> m</label><input id="lw" type="range" min="3" max="12" step="0.1" value="8.2"></div>
+<div class="big" id="lout"></div><div class="mut">IFV is about 3.7 m wide. The IFV-route rule is 4.5 m of clear width. This slider compares a clear width against both.</div></section>
+
+<section class="panel" id="m"><h2>Bible page map</h2>
+<input type="text" id="q" placeholder="Filter pages…" aria-label="Filter pages">
+<div class="row"><button id="ex">Expand all</button><button id="co">Collapse all</button></div>
+<div id="tree"></div><div class="mut">Collapsing a parent hides its children; reopening restores which children were open.</div></section>
+
+<script>
+const P=document.querySelectorAll('.panel');
+document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-p]').forEach(x=>x.setAttribute('aria-selected',x===b));P.forEach(p=>p.classList.toggle('on',p.id===b.dataset.p))});
+// timeline: months from Oct 2026 (0)
+const V=[["V1",3,[2,5]],["V2",6,[5,9]],["V3",11,[9,14]],["V4",16,[13,20]],["V5",20,[17,24]],["Free beta",23,[20,27]],["Paid launch",26,[23,30]]];
+const MN=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const lab=m=>{const t=9+m;return MN[((t%12)+12)%12]+" "+(2026+Math.floor(t/12))};
+let rng="mid";
+function tl(){const s=+slip.value;slipv.textContent=s;const W=32;let h="";
+V.forEach(([n,c,r])=>{const v=rng=="mid"?c:rng=="lo"?r[0]:r[1];const m=v+s;const left=Math.max(0,m)/W*100;
+h+=`<div class="lbl"><span>${n}</span><span>${lab(m)}</span></div><div class="bar"><i style="left:0;width:${left}%"></i></div>`});
+document.getElementById("tl").innerHTML=h}
+slip.oninput=tl;document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{rng=b.dataset.r;document.querySelectorAll('[data-r]').forEach(x=>x.setAttribute('aria-selected',x===b));tl()});tl();
+// lane
+function ln(){const w=+lw.value;lwv.textContent=w.toFixed(1);const side=(w-3.7)/2;
+lout.innerHTML=`Clearance per side: ${side.toFixed(2)} m → <span class="${w>=4.5?'ok':'bad'}">${w>=4.5?'passes the 4.5 m route rule':'fails the 4.5 m route rule'}</span> ${w<3.7?'<span class="bad">(IFV does not fit)</span>':''}`}
+lw.oninput=ln;ln();
+// tree (generic labels)
+const T=[
+["Overview",["01 Developer & brand","02 Franchise summary",["03 Versions & scope",["Philosophy & targets","Version-by-version plan","Feature matrix"]]]],
+["Design",[["04 Full-scope design",["Structure & zones","Roles & systems","Equipment","Standards"]],["05 Map design",["Overview & regions","First region (MVP)","Other regions","World streaming"]]]],
+["MVP specification",[["06 MVP specification",["Core rules","Movement","Combat","Weapons","AI behavior","Interface & audio","Tunables"]]]],
+["World standards",[["07 Map-wide standards",["World layout","Signage & displays","Lighting","Buildings & interiors","Technical standards","Tools","Structures & landmarks","Destruction"]]]],
+["Status",["08 Current development state","15 Devlogs","19 Tasks & next steps"]]
+];
+const KEY="ah-tree-v1";let S={};try{S=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+function build(items,host,path){items.forEach(it=>{
+ if(typeof it==="string"){const d=document.createElement("div");d.className="leaf";d.style.margin="2px 0 2px 24px";d.textContent=it;host.appendChild(d);return}
+ const [name,kids]=it;const id=path+"/"+name;const dt=document.createElement("details");dt.dataset.id=id;if(S[id])dt.open=true;
+ const sm=document.createElement("summary");sm.textContent=name;dt.appendChild(sm);dt.addEventListener("toggle",()=>{S[id]=dt.open;save()});build(kids,dt,id);host.appendChild(dt)})}
+build(T,document.getElementById("tree"),"");
+q.oninput=()=>{const v=q.value.toLowerCase();document.querySelectorAll("#tree .leaf").forEach(l=>l.classList.toggle("hid",v&&!l.textContent.toLowerCase().includes(v)))};
+ex.onclick=()=>document.querySelectorAll("#tree details").forEach(d=>d.open=true);
+co.onclick=()=>document.querySelectorAll("#tree details").forEach(d=>d.open=false);
+</script>
+</body>
+</html>
